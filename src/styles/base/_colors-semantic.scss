@@ -1,0 +1,59 @@
+@use "colors-extended";
+
+// Background
+$color-background-layer-0: colors-extended.$color-neutral-95; // Input fields, bargraphs, pills,...
+$color-background-layer-1: colors-extended.$color-neutral-90; // Page
+$color-background-layer-2: colors-extended.$color-neutral-85; // Panel
+$color-background-layer-3: colors-extended.$color-neutral-80; // Panel header, contrast zone on panels, lists, selected menu item,...
+$color-background-layer-4: colors-extended.$color-neutral-75; // Disabled input fields
+$color-background-layer-5: colors-extended.$color-neutral-60; // Selected item
+
+$color-background-disabled: colors-extended.$color-neutral-70;
+
+$color-shadows: colors-extended.$color-neutral-100;
+
+// Foreground: typography, icons,...
+$color-foreground-dimmed: colors-extended.$color-neutral-40; // Informative text
+$color-foreground-default: colors-extended.$color-neutral-20; // Text
+$color-foreground-bright: colors-extended.$color-neutral-10; // Titles
+$color-foreground-highlighted: colors-extended.$color-neutral-0; // Highlighted icons and texts
+
+$color-foreground-inverted: colors-extended.$color-neutral-90;
+
+$color-foreground-focus: colors-extended.$color-turquoise-20;
+
+$color-foreground-disabled: colors-extended.$color-neutral-30;
+
+$color-separator: colors-extended.$color-neutral-60;
+
+// Primary action color
+$color-action-primary-dark:  colors-extended.$color-turquoise-70;
+$color-action-primary:       colors-extended.$color-turquoise-50;
+$color-action-primary-light: colors-extended.$color-turquoise-20;
+
+// Secondary action color
+$color-action-secondary-dark:  colors-extended.$color-teal-70;
+$color-action-secondary:       colors-extended.$color-teal-50;
+$color-action-secondary-light: colors-extended.$color-teal-20;
+
+// Feedback colours
+$color-feedback-info-dark:  colors-extended.$color-blue-70;
+$color-feedback-info:       colors-extended.$color-blue-50;
+$color-feedback-info-light: colors-extended.$color-blue-10;
+
+$color-feedback-good-dark:  colors-extended.$color-green-60;
+$color-feedback-good:       colors-extended.$color-green-50;
+$color-feedback-good-light: colors-extended.$color-green-30;
+
+$color-feedback-warning-dark:  colors-extended.$color-pumpkin-70;
+$color-feedback-warning:       colors-extended.$color-pumpkin-50;
+$color-feedback-warning-light: colors-extended.$color-pumpkin-30;
+
+$color-feedback-bad-dark:  colors-extended.$color-red-60;
+$color-feedback-bad:       colors-extended.$color-red-50;
+$color-feedback-bad-light: colors-extended.$color-red-30;
+
+/// TODO active, on-air, connected ?
+$color-feedback-on-air-dark:  colors-extended.$color-red-70;
+$color-feedback-on-air:       colors-extended.$color-red-50;
+$color-feedback-on-air-light: colors-extended.$color-red-0;

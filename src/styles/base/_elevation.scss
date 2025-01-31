@@ -1,0 +1,96 @@
+/*
+ * Elevation mixin borrowed from Google Material Design Web
+ */
+
+@use "sass:map";
+@use "colors-extended";
+
+$_key-opacity: 0.75;
+
+$_ambient-opacity: 0.2;
+
+/* offset-x offset-y blur-radius spread-radius
+
+Tools:
+https://box-shadow.dev
+https://stackoverflow.design/product/base/box-shadow/
+https://atlassian.design/foundations/elevation
+https://css-tricks.com/snippets/sass/material-shadows-mixin/
+https://codepen.io/dibdab/pen/VzWYNv
+*/
+$_shadow-map: (
+  0: (
+    key: '0px 0px 0px',
+    ambient: '0px 0px 0px 0px',
+  ),
+  1: (
+    key: '0px 1px 2px',
+    ambient: '0px 2px 4px 1px',
+  ),
+  2: (
+    key: '0px 2px 2px',
+    ambient: '0px 3px 6px 2px',
+  ),
+  3: (
+    key: '0px 2px 3px',
+    ambient: '0px 5px 8px 3px',
+  ),
+  4: (
+    key: '0px 3px 3px',
+    ambient: '0px 7px 10px 4px',
+  ),
+  5: (
+    key: '0px 4px 4px',
+    ambient: '0px 8px 12px 6px',
+  ),
+);
+
+/// Returns the appropriate box-shadow for the given level and shadow color.
+///
+/// @throw If level or shadow-color are provided and one is null.
+/// @param {Number} $level - The level of the elevation system.
+/// @param {Color} $shadow-color - The color of the shadow.
+/// @return {List|String} - The constructed box-shadow, none (for elevation 0),
+///     or null
+@function _make-box-shadow($level, $shadow-color) {
+  @if $level == null {
+    @error '$level is required when $shadow-color is provided';
+  }
+
+  @if $level == 0 {
+    @return none;
+  }
+
+  $key-spread: map.get($_shadow-map, $level, key);
+  $ambient-spread: map.get($_shadow-map, $level, ambient);
+
+  $key-color: rgba($shadow-color, $_key-opacity);
+  $ambient-color: rgba($shadow-color, $_ambient-opacity);
+
+  @return (#{$key-spread} #{$key-color}, #{$ambient-spread} #{$ambient-color});
+}
+
+@function _make-drop-shadow($level, $shadow-color) {
+  @if $level == null {
+    @error '$level is required when $shadow-color is provided';
+  }
+
+  @if $level == 0 {
+    @return none;
+  }
+
+  $key-spread: map.get($_shadow-map, $level, key);
+  $key-color: rgba($shadow-color, $_key-opacity);
+
+  @return (#{$key-spread} #{$key-color});
+}
+
+$_default_color: colors-extended.$color-neutral-100;
+
+@mixin level($level, $color: $_default_color) {
+  box-shadow: _make-box-shadow($level, $color);
+}
+
+@mixin dropLevel($level, $color: $_default_color) {
+  filter: drop-shadow(_make-drop-shadow($level, $color));
+}

@@ -1,0 +1,40 @@
+@use "base/colors-semantic";
+@use "base/decoration";
+@use "base/typography";
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: typography.$font-family-sans-serif;
+  background-color: colors-semantic.$color-background-layer-1;
+  color: colors-semantic.$color-foreground-default;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+#app{
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+h1{
+  @include typography.font-size-height-1;
+  font-weight: normal;
+}
+
+h2{
+  @include typography.font-size-height-2;
+  font-weight: normal;
+}
+
+h3{
+  @include typography.font-size-height-3;
+  font-weight: normal;
+}

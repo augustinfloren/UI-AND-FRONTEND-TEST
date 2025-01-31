@@ -1,0 +1,262 @@
+/* =============================================================================
+Utility classes and mixins
+============================================================================= */
+
+@use "sass:color";
+@use "colors-extended";
+@use "colors-semantic";
+@use "elevation";
+@use "space";
+@use "typography";
+
+// Geometry
+// -----------------------------------------------------------------------------
+$border-radius: 5px; ///  Bootstrap use mixin for this
+
+.rounded {
+  border-radius: $border-radius;
+}
+
+.padded {
+  padding: space.$space-relative-half;
+}
+
+.spaced {
+  margin: space.$space-relative-half;
+}
+
+// Background colours
+// -----------------------------------------------------------------------------
+.bg-0 {
+  background-color: colors-extended.$color-neutral-0;
+}
+
+.bg-10 {
+  background-color: colors-extended.$color-neutral-10;
+}
+
+.bg-20 {
+  background-color: colors-extended.$color-neutral-20;
+}
+
+.bg-50 {
+  background-color: colors-extended.$color-neutral-50;
+}
+
+.bg-60 {
+  background-color: colors-extended.$color-neutral-60;
+}
+
+.bg-70 {
+  background-color: colors-extended.$color-neutral-70;
+}
+
+.bg-80 {
+  background-color: colors-extended.$color-neutral-80;
+}
+
+.bg-90 {
+  background-color: colors-extended.$color-neutral-90;
+}
+
+// Default background & foreground color set
+// -----------------------------------------------------------------------------
+@mixin fgbg-color-0 {
+  background-color: colors-extended.$color-neutral-0;
+  color: colors-extended.$color-neutral-80;
+}
+
+@mixin fgbg-color-10 {
+  background-color: colors-extended.$color-neutral-10;
+  color: colors-extended.$color-neutral-80;
+}
+
+@mixin fgbg-color-20 {
+  background-color: colors-extended.$color-neutral-20;
+  color: colors-extended.$color-neutral-80;
+}
+
+@mixin fgbg-color-50 {
+  background-color: colors-extended.$color-neutral-50;
+  color: colors-extended.$color-neutral-0;
+}
+
+@mixin fgbg-color-60 {
+  background-color: colors-extended.$color-neutral-60;
+  color: colors-extended.$color-neutral-10;
+}
+
+@mixin fgbg-color-70 {
+  background-color: colors-extended.$color-neutral-70;
+  color: colors-extended.$color-neutral-10;
+}
+
+@mixin fgbg-color-80 {
+  background-color: colors-extended.$color-neutral-80;
+  color: colors-extended.$color-neutral-10;
+}
+
+@mixin fgbg-color-90 {
+  background-color: colors-extended.$color-neutral-90;
+  color: colors-extended.$color-neutral-20;
+}
+
+@mixin fgbg-color-100 {
+  background-color: colors-extended.$color-neutral-100;
+  color: colors-extended.$color-neutral-20;
+}
+
+// Shadows
+// -----------------------------------------------------------------------------
+$color-box-shadow: rgba(colors-extended.$color-neutral-95, .5); // TODO rename color-shadow ?
+
+@mixin box-shadow-top {
+  box-shadow: 0px -1px 2px 0px $color-box-shadow,
+              0px -2px 4px 1px $color-box-shadow;
+}
+
+@mixin box-shadow-bottom {
+  box-shadow: 0px 1px 2px 0px $color-box-shadow,
+              0px 2px 4px 1px $color-box-shadow;
+}
+
+@mixin box-shadow-right {
+  box-shadow: 1px 0px 2px 0px $color-box-shadow,
+              2px 0px 4px 1px $color-box-shadow;
+}
+
+@mixin box-shadow-left {
+  box-shadow: -1px 0px 2px 0px $color-box-shadow,
+              -2px 0px 4px 1px $color-box-shadow;
+}
+
+@mixin box-shadow-component {
+  @include elevation.level(1);
+}
+
+@mixin box-shadow-panel {
+  @include elevation.level(1);
+}
+
+.hidden {  /// TODO move to a more appropriate place
+  display: none !important;
+}
+
+// Composite
+// -----------------------------------------------------------------------------
+@mixin push-down {
+  cursor: pointer;
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+@mixin button-deco {
+  min-width: 32px;
+  min-height: 32px;
+  padding: space.$space-relative-default;
+  margin: space.$space-relative-default;
+
+  background-color: colors-extended.$color-neutral-15;
+  @include box-shadow-component;
+
+  border: none;
+  border-radius: $border-radius;
+
+  @include typography.font-family-and-size-default;
+  font-weight: 700;
+  color: colors-semantic.$color-foreground-inverted;
+
+  white-space: nowrap;
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 0 space.$space-fixed-default;
+
+  user-select: none;
+
+  @include push-down;
+
+  &:hover {
+    background-color: colors-extended.$color-neutral-25;
+  }
+
+  &:focus {
+    outline: 2px solid colors-extended.$color-neutral-15;
+    outline-offset: 3px;
+
+    border: none;
+    box-shadow: none;
+
+    &:hover {
+      outline: 2px solid colors-extended.$color-neutral-25;
+    }
+  }
+
+  img {
+    margin: space.$space-relative-half;
+  }
+
+  svg {
+    margin: space.$space-relative-half space.$space-relative-default;
+    width: 1.2em;
+    fill: colors-extended.$color-neutral-10;
+  }
+
+  &:disabled {
+    background: colors-semantic.$color-background-disabled;
+    color: colors-semantic.$color-foreground-disabled;
+
+    box-shadow: none;
+
+    pointer-events: none;
+    cursor: default;
+
+    * {
+      pointer-events: none;
+    }
+
+    &:active {
+      transform: none;
+    }
+  }
+}
+
+@mixin input-deco {
+  min-height: 32px;
+
+  box-sizing: border-box;
+
+  padding: space.$space-relative-half space.$space-relative-default;
+  margin: space.$space-relative-default;
+
+  @include typography.font-family-and-size-default;
+
+  background-color: colors-semantic.$color-background-layer-0;
+  color: colors-semantic.$color-foreground-default;
+  border: none;
+  border-radius: $border-radius;
+
+  &::placeholder {
+    color: colors-semantic.$color-foreground-dimmed;
+  }
+
+  &:active,
+  &:focus,
+  &:focus-within {
+    outline: none; // Remove border on Chrome
+    border-color: colors-semantic.$color-action-secondary-light;
+    box-shadow: 0 0 0 2px colors-semantic.$color-action-secondary-light;
+  }
+
+  &:disabled {
+    background-color: colors-semantic.$color-background-disabled;
+    color: colors-semantic.$color-foreground-disabled;
+    pointer-events: none;
+  }
+}
