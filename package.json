@@ -9,7 +9,8 @@
 		"preview": "vite preview",
 		"build-only": "vite build",
 		"type-check": "vue-tsc --build",
-		"lint": "biome check --write"
+		"lint": "biome check --write",
+		"prepare": "husky"
 	},
 	"dependencies": {
 		"lit": "^3.2.1",
@@ -17,10 +18,13 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
+		"@commitlint/cli": "^19.7.1",
+		"@commitlint/config-conventional": "^19.7.1",
 		"@tsconfig/node22": "^22.0.0",
 		"@types/node": "^22.10.7",
 		"@vitejs/plugin-vue": "^5.2.1",
 		"@vue/tsconfig": "^0.7.0",
+		"husky": "^9.1.7",
 		"npm-run-all2": "^7.0.2",
 		"sass-embedded": "^1.83.4",
 		"typescript": "~5.7.3",
