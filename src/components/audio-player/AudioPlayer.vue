@@ -29,7 +29,7 @@ const onVolumeChange = (
 </script>
 
 <template>
-	<div id="audio-player" class="panel">
+	<div class="audio-player panel">
 		<template v-if="store.audioContext">
 		  <h2>{{ audioFiles[0].name }}</h2>
 		  <h3>{{ audioFiles[0].author }}</h3>
@@ -47,7 +47,4 @@ const onVolumeChange = (
 </template>
 
 <style scoped lang="scss">
-@use "@/styles/base/colors-semantic";
-#audio-player {
-}
 </style>

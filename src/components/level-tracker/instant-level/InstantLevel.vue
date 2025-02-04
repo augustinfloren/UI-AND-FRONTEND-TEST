@@ -21,7 +21,7 @@ defineProps<{
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    font-size: typography.$font-size-2;
+    font-size: typography.$font-size-3;
     color: colors-semantic.$color-foreground-highlighted;
 }
 </style>
