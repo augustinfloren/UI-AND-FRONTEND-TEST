@@ -1,6 +1,7 @@
 @use "base/colors-semantic";
 @use "base/decoration";
 @use "base/typography";
+@use "base/space";
 
 html, body {
   margin: 0;
@@ -22,6 +23,11 @@ html, body {
   padding: 0;
   align-items: center;
   justify-content: center;
+
+  main {
+    display: flex;
+    gap: space.$space-fixed-quadruple;
+  }
 }
 
 h1{
