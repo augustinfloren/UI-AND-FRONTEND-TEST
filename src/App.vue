@@ -2,6 +2,7 @@
 import { ref } from "vue";
 
 import "@/components/lit/audio-player/AudioPlayer";
+import LevelIndicator from "./components/level-tracker/level-indicator/LevelIndicator.vue";
 
 const audioContext = ref<AudioContext | null>(null);
 const instantRMS = ref<number | null>(null);
@@ -34,6 +35,7 @@ const onVolumeChange = (
 
 <template>
   <main>
+	<LevelIndicator type="RMS" :value="instantRMS"/>
     <template v-if="audioContext">
       <h2>{{ audioFiles[0].name }}</h2>
       <h3>{{ audioFiles[0].author }}</h3>
