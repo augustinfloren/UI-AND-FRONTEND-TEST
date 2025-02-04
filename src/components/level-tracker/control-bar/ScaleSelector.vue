@@ -25,10 +25,10 @@ const scale = ref<number | null>(options.value[0]?.value ?? null);
 
 <style scoped lang="scss">
 .scale-selector{
-    width: 85%;
     display: flex;
     justify-content: center;
     select {
+        margin-right: 3rem;
         text-align: center;
     }
 }

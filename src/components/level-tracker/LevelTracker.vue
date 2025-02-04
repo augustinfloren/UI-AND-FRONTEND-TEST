@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { store } from "@/store/levelTrackerStore";
 import InstantLevel from "./instant-level/InstantLevel.vue";
-import ScaleSelector from "./control/ScaleSelector.vue";
-import ResetButton from "./control/ResetButton.vue";
+import ControlBar from "./control-bar/Control-bar.vue";
 import Histogram from "./histogram/Histogram.vue";
 </script>
 
@@ -12,10 +11,7 @@ import Histogram from "./histogram/Histogram.vue";
             <h2>Loud Tracker</h2>
         </header>
 
-        <div class="control-bar">
-            <ScaleSelector />
-            <ResetButton />
-        </div>
+        <ControlBar />
 
         <div class="level-tracker__main">
             <Histogram />
@@ -51,13 +47,6 @@ import Histogram from "./histogram/Histogram.vue";
             font-size: typography.$font-size-6;
             line-height: 0%;
         }
-    }
-
-    .control-bar{
-        height: 15%;
-        display: flex;
-        align-items: center;
-        background-color: colors-semantic.$color-background-layer-1;
     }
 
     &__main{
