@@ -2,7 +2,7 @@
 import { ref } from "vue";
 
 import "@/components/lit/audio-player/AudioPlayer";
-import LevelIndicator from "./components/level-tracker/level-indicator/LevelIndicator.vue";
+import LevelTracker from "@/components/level-tracker/LevelTracker.vue";
 
 const audioContext = ref<AudioContext | null>(null);
 const instantRMS = ref<number | null>(null);
@@ -35,19 +35,21 @@ const onVolumeChange = (
 
 <template>
   <main>
-	<LevelIndicator type="RMS" :value="instantRMS"/>
-    <template v-if="audioContext">
-      <h2>{{ audioFiles[0].name }}</h2>
-      <h3>{{ audioFiles[0].author }}</h3>
-      <oh-audio-player :audioContext="audioContext" :src="audioFiles[0].path" @volume-change="onVolumeChange"></oh-audio-player>
-
-      <div>
-        <div>RMS: {{ instantRMS }}</div>
-        <div>LUFS: {{ instantLUFS }}</div>
-      </div>
-    </template>
-    <template v-else>
-        <button @click="startAudioContext">Start</button>
-      </template>
+	<LevelTracker />
+	<div class="player">
+		<template v-if="audioContext">
+		  <h2>{{ audioFiles[0].name }}</h2>
+		  <h3>{{ audioFiles[0].author }}</h3>
+		  <oh-audio-player :audioContext="audioContext" :src="audioFiles[0].path" @volume-change="onVolumeChange"></oh-audio-player>
+	
+		  <div>
+			<div>RMS: {{ instantRMS }}</div>
+			<div>LUFS: {{ instantLUFS }}</div>
+		  </div>
+		</template>
+		<template v-else>
+			<button @click="startAudioContext">Start</button>
+		  </template>
+	</div>
   </main>
 </template>
