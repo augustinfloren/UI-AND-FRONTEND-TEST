@@ -1,8 +1,31 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { store } from "@/store/levelTrackerStore";
+import { onMounted, ref, watch } from "vue";
 import * as d3 from "d3";
 
 const histogram = ref<SVGSVGElement | null>(null);
+// Quand la lecture démarre, démarrer un compteur 
+// et envoyer les données 
+//  : Poser un watcher sur la ref playing et faire quelque chose
+// Créer une data dynamique avec les valeurs du compteur et des données de l'audioplayer
+//  : svg.enter { merge(path) }
+// Quand la lecture est stopée arreter le compteur
+
+let totalElapsed = 0;
+let lastElapsed = 0;
+
+watch(() => store.playing, () => {
+    if (store.playing) {
+        let t = d3.timer((elapsed) => {
+            totalElapsed = lastElapsed + elapsed;
+            console.log(totalElapsed)
+            if (!store.playing) {
+                t.stop();
+                lastElapsed = totalElapsed;
+            } 
+        }, 150);
+    }
+});
 
 const data: {time: number, level: number} [] = [
     {time: 0, level : 50}, 
@@ -25,9 +48,9 @@ const height = width
 const innerRadius = 50
 const outerRadius = 180
 
+
 onMounted(() => {
-    const svg = d3
-        .select(histogram.value)  // Création du svg avec sa taille
+    const svg = d3.select(histogram.value)  // Création du svg avec sa taille
         .attr("width", width)
         .attr("height", height)
         .style("background", "grey")
@@ -70,7 +93,6 @@ onMounted(() => {
 
 <template>
     <div class="histogram">
-        <!-- <div class="histogram__circle"></div> -->
         <div class="histogram__container">
             <svg class="histogram__circle" ref="histogram"></svg>
         </div>
@@ -86,12 +108,5 @@ onMounted(() => {
         display: flex;
         align-items: center;
         justify-content: center;
-
-        &__circle {
-            // width: 23rem;
-            // height: 23rem;
-            // border-radius: 50%;
-            // border: 1px solid colors-semantic.$color-foreground-default;
-        }
     }
 </style>

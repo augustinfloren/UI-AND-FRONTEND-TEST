@@ -51,6 +51,13 @@ export class AudioPlayer extends LitElement {
 				composed: true, 
 			}));
 		});
+
+		this.audio.addEventListener("pause", () => {
+			this.dispatchEvent(new CustomEvent("audio-pause", {
+				bubbles: true, 
+				composed: true, 
+			}));
+		});
 	}
 
 	render() {

@@ -28,7 +28,9 @@ const onVolumeChange = (
 };
 const onPlay = () => {
 	store.playing = true
-	console.log(store.playing)
+};
+const onPause = () => {
+	store.playing = false
 };
 </script>
 
@@ -37,7 +39,7 @@ const onPlay = () => {
 		<template v-if="store.audioContext">
 		  <h2>{{ audioFiles[0].name }}</h2>
 		  <h3>{{ audioFiles[0].author }}</h3>
-		  <oh-audio-player :audioContext="store.audioContext" :src="audioFiles[0].path" @volume-change="onVolumeChange" @audio-play="onPlay"></oh-audio-player>
+		  <oh-audio-player :audioContext="store.audioContext" :src="audioFiles[0].path" @volume-change="onVolumeChange" @audio-play="onPlay" @audio-pause="onPause"></oh-audio-player>
 	
 		  <div>
 			<div>RMS: {{ store.instantRMS }}</div>
