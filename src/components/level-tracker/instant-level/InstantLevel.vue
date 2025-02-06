@@ -1,14 +1,17 @@
 <script setup lang="ts">
-defineProps<{
+import { computed } from 'vue';
+
+const props = defineProps<{
   type: string
   value: number | null
 }>()
+
 </script>
 
 <template>
     <div class="instant-level">
         <span class="instant-level__type">{{ type }}</span>
-        <span v-if="value" class="instant-level__value">{{ value }}</span>
+        <span v-if="value" class="instant-level__value">0</span>
         <span v-else class="instant-level__value">0</span>
     </div>
 </template>

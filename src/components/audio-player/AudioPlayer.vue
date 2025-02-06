@@ -26,6 +26,10 @@ const onVolumeChange = (
 	store.instantRMS = e.detail.rms;
 	store.instantLUFS = e.detail.lufs;
 };
+const onPlay = () => {
+	store.playing = true
+	console.log(store.playing)
+};
 </script>
 
 <template>
@@ -33,7 +37,7 @@ const onVolumeChange = (
 		<template v-if="store.audioContext">
 		  <h2>{{ audioFiles[0].name }}</h2>
 		  <h3>{{ audioFiles[0].author }}</h3>
-		  <oh-audio-player :audioContext="store.audioContext" :src="audioFiles[0].path" @volume-change="onVolumeChange"></oh-audio-player>
+		  <oh-audio-player :audioContext="store.audioContext" :src="audioFiles[0].path" @volume-change="onVolumeChange" @audio-play="onPlay"></oh-audio-player>
 	
 		  <div>
 			<div>RMS: {{ store.instantRMS }}</div>
