@@ -155,7 +155,14 @@ onMounted(() => {
             store.restart = false;
             data.value = [];
             lastElapsed = 0;
-            t.restart(updateTimer);
+
+            if (store.playing) {
+                t.restart(updateTimer);
+            } else {
+                t.stop()
+                path.attr("d", "");
+                needle.attr("transform", "rotate(0)");
+            }
         }
     });
 
