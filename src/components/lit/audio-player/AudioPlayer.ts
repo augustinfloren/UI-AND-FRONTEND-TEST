@@ -44,6 +44,20 @@ export class AudioPlayer extends LitElement {
 		this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
 
 		this.getValues();
+
+		this.audio.addEventListener("play", () => {
+			this.dispatchEvent(new CustomEvent("audio-play", {
+				bubbles: true, 
+				composed: true, 
+			}));
+		});
+
+		this.audio.addEventListener("pause", () => {
+			this.dispatchEvent(new CustomEvent("audio-pause", {
+				bubbles: true, 
+				composed: true, 
+			}));
+		});
 	}
 
 	render() {
