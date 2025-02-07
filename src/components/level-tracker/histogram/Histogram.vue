@@ -1,24 +1,11 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { store } from "@/store/levelTrackerStore";
+import { onMounted, ref, watch } from "vue";
 import * as d3 from "d3";
 
 const histogram = ref<SVGSVGElement | null>(null);
-
-const data: {time: number, level: number} [] = [
-    {time: 0, level : 50}, 
-    {time: 5, level : 60},
-    {time: 10, level : 80},
-    {time: 15, level : 80}, 
-    {time: 20, level : 90},
-    {time: 25, level : 80},
-    {time: 30, level : 70},
-    {time: 35, level : 60},
-    {time: 40, level : 80},
-    {time: 45, level : 90},
-    {time: 50, level : 80},
-    {time: 55, level : 70},
-    {time: 60, level : 114},
-]
+const data = ref<{ time: number | null, level: number | null }[]>([]);
+let lastElapsed = 0;
 
 const width  = 368
 const height = width
@@ -26,36 +13,52 @@ const innerRadius = 50
 const outerRadius = 180
 
 onMounted(() => {
-    const svg = d3
-        .select(histogram.value)  // Création du svg avec sa taille
+    const svg = d3.select(histogram.value)  
         .attr("width", width)
         .attr("height", height)
         .style("background", "grey")
         .attr("viewBox", [-width / 2, -height / 2, width, height]) 
-        .attr("style", "width: 100%; height: auto; font: 10px sans-serif;")
+        .attr("style", "width: 100%; height: auto;")
         .attr("stroke-linejoin", "round")
         .attr("stroke-linecap", "round");
     
-    const x = d3.scaleLinear()  
-        .domain([0, 60])  // Echelle des données
-        .range([0, 2 * Math.PI]);  // Longueur de l'anneau 
+    // TIME
+    const x = d3.scaleLinear() 
+        .domain([0, 60])  // SCALE
+        .range([0, 2 * Math.PI]);  // RADIAL WIDTH
     
-    const y = d3.scaleLinear()
-        .domain([0, 100])  // Echelle des données 
-        .range([innerRadius, outerRadius]);  // Largeur de l'anneau en px
+    // LEVEL
+    const y = d3.scaleLinear() 
+        .domain([-50, 50])  // SCALE
+        .range([innerRadius, outerRadius]);  // RADIAL HEIGHT
     
-    const line = d3.lineRadial<[number, number]>() // Définition de la ligne
-        .curve(d3.curveLinear)
+    // RMS Line
+    const line = d3.lineRadial<[number, number]>() 
+        .curve(d3.curveCatmullRom)
         .angle(d => x(d[0]))   
+
+    // BLUR
+    svg.append("defs")
+        .append("filter")
+        .attr("id", "glow")
+        .append("feGaussianBlur")
+        .attr("stdDeviation", 2)  // Réglage du flou
+        .attr("result", "coloredBlur");
     
-    svg.append("path")
+    // RMS Path
+    const path = svg.append("path")
         .attr("fill", "none")
-        .attr("stroke", "steelblue")
+        .attr("stroke", "purple")
         .attr("stroke-width", 1.5)
+        .attr("fill-opacity", 0.2)
         .attr("d", line(
-            data.map(d => [d.time, d.level]) 
-        ));
-            
+            data.value
+                .filter(d => d.time !== null && d.level !== null)  
+                .map(d => [d.time!, d.level!])
+        ))
+        .attr("filter", "url(#glow)");
+
+    // TICKS
     svg.append("g")
         .selectAll()
         .data(y.ticks())
@@ -63,14 +66,89 @@ onMounted(() => {
             .call(g => g.append("circle")
                 .attr("fill", "none")
                 .attr("stroke", "currentColor")
-                .attr("stroke-opacity", 0.2)
+                .attr("stroke-opacity", 0.1)
                 .attr("r", y));
+
+    // moving Needle 
+    const needle = svg.append("line")
+        .attr("x1", 0)
+        .attr("y1", -50)
+        .attr("x2", 0) 
+        .attr("y2", -outerRadius) // Longueur du rayon
+        .attr("stroke", "#afb0be")
+        .attr("stroke-width", 1.5);
+
+    // static Needle 
+    const firstNeedle = svg.append("line")
+        .attr("x1", 0)
+        .attr("y1", -50)
+        .attr("x2", 0) 
+        .attr("y2", -outerRadius) // Longueur du rayon
+        .attr("stroke", "#afb0be")
+        .attr("stroke-width", 1.5);
+
+    // Inner C
+    d3.selectAll("circle")
+        .filter((d, i, nodes) => i === 0)  
+        .attr("fill", "#1c1e30")
+        .attr("stroke", "#afb0be")
+        .attr("stroke-width", 1.5)
+        .attr("stroke-opacity", 1)
+
+    // Outer C
+    d3.selectAll("circle")
+        .filter((d, i, nodes) => i === 10)  
+        .attr("stroke", "#afb0be")
+        .attr("stroke-width", 1.5)
+        .attr("stroke-opacity", 1)
+    
+    let rmsValues = []; 
+    const windowSize = 10;
+
+    watch(() => store.playing, () => {
+        if (store.playing) {
+            let t = d3.timer((elapsed) => {
+                let newValue = Math.round(store.instantRMS) + 80;
+                rmsValues.push(newValue);
+
+                if (rmsValues.length > windowSize) {
+                    rmsValues.shift(); 
+                }   
+
+                let avgRMS = rmsValues.reduce((sum, val) => sum + val, 0) / rmsValues.length;
+
+                store.elapsedTime = lastElapsed + elapsed;
+                const angle = x(store.elapsedTime/1000);
+                needle
+                    .transition()
+                    .duration(50)
+                    .attr("transform", `rotate(${angle * (180 / Math.PI)})`);  
+
+                data.value.push(
+                    { time: Math.floor(store.elapsedTime)/1000, level: avgRMS }
+                );
+
+                path
+                    .transition()  
+                    .duration(500) 
+                    .ease(d3.easeLinear)
+                    .attr("d", line(
+                        data.value
+                            .filter(d => d.time !== null && d.level !== null) 
+                            .map(d => [d.time!, d.level!])
+                    ));
+                if (!store.playing) {
+                    t.stop();
+                    lastElapsed = store.elapsedTime;
+                } 
+            }, 150);
+        }
+    });
 })
 </script>
 
 <template>
     <div class="histogram">
-        <!-- <div class="histogram__circle"></div> -->
         <div class="histogram__container">
             <svg class="histogram__circle" ref="histogram"></svg>
         </div>
@@ -86,12 +164,5 @@ onMounted(() => {
         display: flex;
         align-items: center;
         justify-content: center;
-
-        &__circle {
-            // width: 23rem;
-            // height: 23rem;
-            // border-radius: 50%;
-            // border: 1px solid colors-semantic.$color-foreground-default;
-        }
     }
 </style>
