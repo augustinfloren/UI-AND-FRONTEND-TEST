@@ -22,28 +22,42 @@ onMounted(() => {
         .attr("stroke-linejoin", "round")
         .attr("stroke-linecap", "round");
     
-    const x = d3.scaleLinear() // TIME
+    // TIME
+    const x = d3.scaleLinear() 
         .domain([0, 60])  // SCALE
         .range([0, 2 * Math.PI]);  // RADIAL WIDTH
     
-    const y = d3.scaleLinear() // LEVEL
-        .domain([0, 60])  // SCALE
+    // LEVEL
+    const y = d3.scaleLinear() 
+        .domain([-50, 50])  // SCALE
         .range([innerRadius, outerRadius]);  // RADIAL HEIGHT
     
+    // RMS Line
     const line = d3.lineRadial<[number, number]>() 
-        .curve(d3.curveLinear)
+        .curve(d3.curveCatmullRom)
         .angle(d => x(d[0]))   
+
+    // BLUR
+    svg.append("defs")
+        .append("filter")
+        .attr("id", "glow")
+        .append("feGaussianBlur")
+        .attr("stdDeviation", 2)  // Réglage du flou
+        .attr("result", "coloredBlur");
     
+    // RMS Path
     const path = svg.append("path")
         .attr("fill", "none")
-        .attr("stroke", "steelblue")
+        .attr("stroke", "purple")
         .attr("stroke-width", 1.5)
+        .attr("fill-opacity", 0.2)
         .attr("d", line(
             data.value
                 .filter(d => d.time !== null && d.level !== null)  
                 .map(d => [d.time!, d.level!])
-        ));
-           
+        ))
+        .attr("filter", "url(#glow)");
+
     // TICKS
     svg.append("g")
         .selectAll()
@@ -52,22 +66,72 @@ onMounted(() => {
             .call(g => g.append("circle")
                 .attr("fill", "none")
                 .attr("stroke", "currentColor")
-                .attr("stroke-opacity", 0.2)
+                .attr("stroke-opacity", 0.1)
                 .attr("r", y));
+
+    // moving Needle 
+    const needle = svg.append("line")
+        .attr("x1", 0)
+        .attr("y1", -50)
+        .attr("x2", 0) 
+        .attr("y2", -outerRadius) // Longueur du rayon
+        .attr("stroke", "#afb0be")
+        .attr("stroke-width", 1.5);
+
+    // static Needle 
+    const firstNeedle = svg.append("line")
+        .attr("x1", 0)
+        .attr("y1", -50)
+        .attr("x2", 0) 
+        .attr("y2", -outerRadius) // Longueur du rayon
+        .attr("stroke", "#afb0be")
+        .attr("stroke-width", 1.5);
+
+    // Inner C
+    d3.selectAll("circle")
+        .filter((d, i, nodes) => i === 0)  
+        .attr("fill", "#1c1e30")
+        .attr("stroke", "#afb0be")
+        .attr("stroke-width", 1.5)
+        .attr("stroke-opacity", 1)
+
+    // Outer C
+    d3.selectAll("circle")
+        .filter((d, i, nodes) => i === 10)  
+        .attr("stroke", "#afb0be")
+        .attr("stroke-width", 1.5)
+        .attr("stroke-opacity", 1)
     
-    // HISTOGRAM UPDATE - TO REFACTO
+    let rmsValues = []; 
+    const windowSize = 10;
+
     watch(() => store.playing, () => {
         if (store.playing) {
             let t = d3.timer((elapsed) => {
+                let newValue = Math.round(store.instantRMS) + 80;
+                rmsValues.push(newValue);
+
+                if (rmsValues.length > windowSize) {
+                    rmsValues.shift(); 
+                }   
+
+                let avgRMS = rmsValues.reduce((sum, val) => sum + val, 0) / rmsValues.length;
+
                 store.elapsedTime = lastElapsed + elapsed;
-    
+                const angle = x(store.elapsedTime/1000);
+                needle
+                    .transition()
+                    .duration(50)
+                    .attr("transform", `rotate(${angle * (180 / Math.PI)})`);  
+
                 data.value.push(
-                    { time: store.elapsedTime/1000, level: 50 }
+                    { time: Math.floor(store.elapsedTime)/1000, level: avgRMS }
                 );
-                
+
                 path
                     .transition()  
                     .duration(500) 
+                    .ease(d3.easeLinear)
                     .attr("d", line(
                         data.value
                             .filter(d => d.time !== null && d.level !== null) 
