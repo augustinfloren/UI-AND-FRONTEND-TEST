@@ -1,8 +1,21 @@
 <script setup lang="ts">
+import { ref } from "vue";
 import { store } from "@/store/levelTrackerStore";
 import InstantLevel from "./instant-level/InstantLevel.vue";
 import ControlBar from "./control-bar/Control-bar.vue";
 import Histogram from "./histogram/Histogram.vue";
+
+const measureState = ref("Start");
+
+const startMeasure = () => {
+    if (!store.measuring) {
+        store.measuring = true;
+        measureState.value = "Stop";
+    } else {
+        store.measuring = false;
+        measureState.value = "Start";
+    }
+}
 </script>
 
 <template>
@@ -16,7 +29,7 @@ import Histogram from "./histogram/Histogram.vue";
         <div class="level-tracker__main">
             <Histogram />
             <div class="instant-level-container">
-                <InstantLevel type="RMS" :value="store.instantRMS"/>
+                <button @click = startMeasure>{{ measureState }}</button>
                 <InstantLevel type="LUFS" :value="store.instantLUFS"/>              
             </div>
         </div>
