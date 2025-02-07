@@ -24,13 +24,13 @@ onMounted(() => {
     
     // TIME
     const x = d3.scaleLinear() 
-        .domain([0, duration.value])  // SCALE
-        .range([0, 2 * Math.PI]);  // RADIAL WIDTH
+        .domain([0, duration.value])  
+        .range([0, 2 * Math.PI]);  
     
     // LEVEL
     const y = d3.scaleLinear() 
-        .domain([-50, 50])  // SCALE
-        .range([innerRadius, outerRadius]);  // RADIAL HEIGHT
+        .domain([-50, 50])  
+        .range([innerRadius, outerRadius]);  
     
     // RMS Line
     const line = d3.lineRadial<[number, number]>() 
@@ -65,16 +65,16 @@ onMounted(() => {
         .attr("x1", 0)
         .attr("y1", -50)
         .attr("x2", 0) 
-        .attr("y2", -outerRadius) // Longueur du rayon
+        .attr("y2", -outerRadius) 
         .attr("stroke", "#afb0be")
         .attr("stroke-width", 1.5);
 
-        // static Needle 
+    // static Needle 
     const firstNeedle = svg.append("line")
         .attr("x1", 0)
         .attr("y1", -50)
         .attr("x2", 0) 
-        .attr("y2", -outerRadius) // Longueur du rayon
+        .attr("y2", -outerRadius) 
         .attr("stroke", "#afb0be")
         .attr("stroke-width", 1.5);
 
@@ -96,14 +96,14 @@ onMounted(() => {
     let t: d3.Timer;
     let rmsValues = []; 
     const windowSize = 10;
-    let newLap = false;
     let lastElapsed = 0;
 
     const updateTimer = (elapsed:number) => {
+        console.log(data.value)
         store.elapsedTime = lastElapsed + elapsed;
         let parsedElapsed = Math.floor(store.elapsedTime)/1000;
 
-        if (store.elapsedTime/1000 >= duration.value) {
+        if (store.elapsedTime/1000 >= duration.value && store.playing) {
             data.value = [];
             lastElapsed = 0;
             t.restart(updateTimer);
@@ -120,7 +120,6 @@ onMounted(() => {
 
         let avgRMS = rmsValues.reduce((sum, val) => sum + val, 0) / rmsValues.length;
 
-
         const angle = x(parsedElapsed % duration.value);
 
         data.value.push( 
@@ -136,19 +135,29 @@ onMounted(() => {
                     .filter(d => d.time !== null && d.level !== null) 
                     .map(d => [d.time!, d.level!])
             ));
-        
 
-        if (!store.measuring) {
+        if (!store.playing) {
             lastElapsed = store.elapsedTime;
-            t.stop();
-        } 
-    }
-
-    watch(() => store.measuring, () => { 
-        if (store.measuring) {
-            t = d3.timer(updateTimer);
+            t.stop(); 
         }
-    })
+    }
+    
+    watch(() => store.playing, () => {
+        if (store.playing) {
+            setTimeout(() =>{
+                t = d3.timer(updateTimer);
+            }, 150)
+        }
+    });
+
+    watch(() => store.restart, () => {
+        if (store.restart) {
+            store.restart = false;
+            data.value = [];
+            lastElapsed = 0;
+            t.restart(updateTimer);
+        }
+    });
 
 });
 
