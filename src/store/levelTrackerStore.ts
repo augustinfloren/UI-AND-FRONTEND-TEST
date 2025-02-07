@@ -5,6 +5,7 @@ export const store = reactive({
     instantLUFS: <number | null>(null),
     audioContext: <AudioContext | null>(null),
 
+    restart: <boolean>(false),
     playing: <boolean>(false),
     elapsedTime: <number>(0),
 })

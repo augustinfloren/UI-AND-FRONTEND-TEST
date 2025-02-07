@@ -27,10 +27,10 @@ const onVolumeChange = (
 	store.instantLUFS = e.detail.lufs;
 };
 const onPlay = () => {
-	store.playing = true
+	store.playing = true;
 };
 const onPause = () => {
-	store.playing = false
+	store.playing = false;
 };
 </script>
 

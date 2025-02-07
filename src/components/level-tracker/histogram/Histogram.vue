@@ -5,7 +5,7 @@ import * as d3 from "d3";
 
 const histogram = ref<SVGSVGElement | null>(null);
 const data = ref<{ time: number | null, level: number | null }[]>([]);
-let lastElapsed = 0;
+const duration = ref<number>(3);
 
 const width  = 368
 const height = width
@@ -24,40 +24,31 @@ onMounted(() => {
     
     // TIME
     const x = d3.scaleLinear() 
-        .domain([0, 60])  // SCALE
-        .range([0, 2 * Math.PI]);  // RADIAL WIDTH
+        .domain([0, duration.value])  
+        .range([0, 2 * Math.PI]);  
     
     // LEVEL
     const y = d3.scaleLinear() 
-        .domain([-50, 50])  // SCALE
-        .range([innerRadius, outerRadius]);  // RADIAL HEIGHT
+        .domain([-50, 50])  
+        .range([innerRadius, outerRadius]);  
     
     // RMS Line
     const line = d3.lineRadial<[number, number]>() 
         .curve(d3.curveCatmullRom)
         .angle(d => x(d[0]))   
 
-    // BLUR
-    svg.append("defs")
-        .append("filter")
-        .attr("id", "glow")
-        .append("feGaussianBlur")
-        .attr("stdDeviation", 2)  // Réglage du flou
-        .attr("result", "coloredBlur");
-    
+        
     // RMS Path
     const path = svg.append("path")
-        .attr("fill", "none")
-        .attr("stroke", "purple")
-        .attr("stroke-width", 1.5)
-        .attr("fill-opacity", 0.2)
-        .attr("d", line(
-            data.value
-                .filter(d => d.time !== null && d.level !== null)  
-                .map(d => [d.time!, d.level!])
-        ))
-        .attr("filter", "url(#glow)");
-
+    .attr("fill", "none")
+    .attr("stroke", "purple")
+    .attr("stroke-width", 2.5)
+    .attr("d", line(
+        data.value
+        .filter(d => d.time !== null && d.level !== null)  
+        .map(d => [d.time!, d.level!])
+    ))
+        
     // TICKS
     svg.append("g")
         .selectAll()
@@ -74,7 +65,7 @@ onMounted(() => {
         .attr("x1", 0)
         .attr("y1", -50)
         .attr("x2", 0) 
-        .attr("y2", -outerRadius) // Longueur du rayon
+        .attr("y2", -outerRadius) 
         .attr("stroke", "#afb0be")
         .attr("stroke-width", 1.5);
 
@@ -83,7 +74,7 @@ onMounted(() => {
         .attr("x1", 0)
         .attr("y1", -50)
         .attr("x2", 0) 
-        .attr("y2", -outerRadius) // Longueur du rayon
+        .attr("y2", -outerRadius) 
         .attr("stroke", "#afb0be")
         .attr("stroke-width", 1.5);
 
@@ -101,50 +92,75 @@ onMounted(() => {
         .attr("stroke", "#afb0be")
         .attr("stroke-width", 1.5)
         .attr("stroke-opacity", 1)
-    
+
+    let t: d3.Timer;
     let rmsValues = []; 
     const windowSize = 10;
+    let lastElapsed = 0;
 
+    const updateTimer = (elapsed:number) => {
+        console.log(data.value)
+        store.elapsedTime = lastElapsed + elapsed;
+        let parsedElapsed = Math.floor(store.elapsedTime)/1000;
+
+        if (store.elapsedTime/1000 >= duration.value && store.playing) {
+            data.value = [];
+            lastElapsed = 0;
+            t.restart(updateTimer);
+        } 
+        
+        if (store.instantRMS) {
+            let newValue = Math.round(store.instantRMS) + 80;
+            rmsValues.push(newValue);
+        }
+
+        if (rmsValues.length > windowSize) {
+            rmsValues.shift(); 
+        }   
+
+        let avgRMS = rmsValues.reduce((sum, val) => sum + val, 0) / rmsValues.length;
+
+        const angle = x(parsedElapsed % duration.value);
+
+        data.value.push( 
+            { time: parsedElapsed, level: avgRMS }
+        );
+        
+        needle
+            .attr("transform", `rotate(${angle * (180 / Math.PI)})`);  
+
+        path
+            .attr("d", line(
+                data.value
+                    .filter(d => d.time !== null && d.level !== null) 
+                    .map(d => [d.time!, d.level!])
+            ));
+
+        if (!store.playing) {
+            lastElapsed = store.elapsedTime;
+            t.stop(); 
+        }
+    }
+    
     watch(() => store.playing, () => {
         if (store.playing) {
-            let t = d3.timer((elapsed) => {
-                let newValue = Math.round(store.instantRMS) + 80;
-                rmsValues.push(newValue);
-
-                if (rmsValues.length > windowSize) {
-                    rmsValues.shift(); 
-                }   
-
-                let avgRMS = rmsValues.reduce((sum, val) => sum + val, 0) / rmsValues.length;
-
-                store.elapsedTime = lastElapsed + elapsed;
-                const angle = x(store.elapsedTime/1000);
-                needle
-                    .transition()
-                    .duration(50)
-                    .attr("transform", `rotate(${angle * (180 / Math.PI)})`);  
-
-                data.value.push(
-                    { time: Math.floor(store.elapsedTime)/1000, level: avgRMS }
-                );
-
-                path
-                    .transition()  
-                    .duration(500) 
-                    .ease(d3.easeLinear)
-                    .attr("d", line(
-                        data.value
-                            .filter(d => d.time !== null && d.level !== null) 
-                            .map(d => [d.time!, d.level!])
-                    ));
-                if (!store.playing) {
-                    t.stop();
-                    lastElapsed = store.elapsedTime;
-                } 
-            }, 150);
+            setTimeout(() =>{
+                t = d3.timer(updateTimer);
+            }, 150)
         }
     });
-})
+
+    watch(() => store.restart, () => {
+        if (store.restart) {
+            store.restart = false;
+            data.value = [];
+            lastElapsed = 0;
+            t.restart(updateTimer);
+        }
+    });
+
+});
+
 </script>
 
 <template>
