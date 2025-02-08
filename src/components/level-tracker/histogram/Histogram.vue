@@ -5,7 +5,7 @@ import * as d3 from "d3";
 
 const histogram = ref<SVGSVGElement | null>(null);
 const data = ref<{ time: number | null, level: number | null }[]>([]);
-const duration = ref<number>(3);
+const duration = 60;
 
 const width  = 368
 const height = width
@@ -24,12 +24,12 @@ onMounted(() => {
     
     // TIME
     const x = d3.scaleLinear() 
-        .domain([0, duration.value])  
+        .domain([0, duration])  
         .range([0, 2 * Math.PI]);  
     
     // LEVEL
     const y = d3.scaleLinear() 
-        .domain([-50, 50])  
+        .domain([0, 50])  
         .range([innerRadius, outerRadius]);  
     
     // RMS Line
@@ -99,11 +99,10 @@ onMounted(() => {
     let lastElapsed = 0;
 
     const updateTimer = (elapsed:number) => {
-        console.log(data.value)
         store.elapsedTime = lastElapsed + elapsed;
         let parsedElapsed = Math.floor(store.elapsedTime)/1000;
 
-        if (store.elapsedTime/1000 >= duration.value && store.playing) {
+        if (store.elapsedTime/1000 >= duration && store.playing) {
             data.value = [];
             lastElapsed = 0;
             t.restart(updateTimer);
@@ -120,10 +119,10 @@ onMounted(() => {
 
         let avgRMS = rmsValues.reduce((sum, val) => sum + val, 0) / rmsValues.length;
 
-        const angle = x(parsedElapsed % duration.value);
+        const angle = x(parsedElapsed % duration);
 
         data.value.push( 
-            { time: parsedElapsed, level: avgRMS }
+            { time: parsedElapsed, level: (store.isMuted ? 80 : avgRMS) }
         );
         
         needle

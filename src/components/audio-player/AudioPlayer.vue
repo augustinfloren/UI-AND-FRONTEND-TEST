@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, } from "vue";
 import { store } from "@/store/levelTrackerStore";
 
 import "@/components/lit/audio-player/AudioPlayer";
@@ -20,18 +21,32 @@ const audioFiles = [
 const startAudioContext = () => {
 	store.audioContext = new AudioContext();
 };
+
 const onVolumeChange = (
 	e: CustomEvent<{ rms: number | null; lufs: number | null }>,
 ) => {
 	store.instantRMS = e.detail.rms;
 	store.instantLUFS = e.detail.lufs;
 };
+
 const onPlay = () => {
 	store.playing = true;
 };
+
 const onPause = () => {
 	store.playing = false;
 };
+
+const onMute = (
+	e: CustomEvent<{ muted: boolean }>
+) => {
+	if (e.detail.muted) {
+		store.isMuted = true;
+	} else {
+		store.isMuted = false;
+	}
+}
+
 </script>
 
 <template>
@@ -39,7 +54,14 @@ const onPause = () => {
 		<template v-if="store.audioContext">
 		  <h2>{{ audioFiles[0].name }}</h2>
 		  <h3>{{ audioFiles[0].author }}</h3>
-		  <oh-audio-player :audioContext="store.audioContext" :src="audioFiles[0].path" @volume-change="onVolumeChange" @audio-play="onPlay" @audio-pause="onPause"></oh-audio-player>
+		  <oh-audio-player 
+		  	:audioContext="store.audioContext" 
+		  	:src="audioFiles[0].path" 
+			@audio-play="onPlay"
+			@audio-pause="onPause"
+			@volume-change="onVolumeChange"
+			@audio-mute="onMute"
+		  ></oh-audio-player>
 	
 		  <div>
 			<div>RMS: {{ store.instantRMS }}</div>
