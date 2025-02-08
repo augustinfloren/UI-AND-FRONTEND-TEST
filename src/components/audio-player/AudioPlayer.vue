@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, } from "vue";
+import { onMounted, ref, } from "vue";
 import { store } from "@/store/levelTrackerStore";
 
 import "@/components/lit/audio-player/AudioPlayer";
@@ -47,6 +47,10 @@ const onMute = (
 	}
 }
 
+onMounted(() => {
+	store.audioContext = new AudioContext();
+})
+
 </script>
 
 <template>
@@ -68,9 +72,6 @@ const onMute = (
 			<div>LUFS: {{ store.instantLUFS }}</div>
 		  </div>
 		</template>
-		<template v-else>
-			<button @click="startAudioContext">Start</button>
-		  </template>
 	</div>
 </template>
 
