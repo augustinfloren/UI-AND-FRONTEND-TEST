@@ -2,10 +2,10 @@
 import { store } from "@/store/levelTrackerStore";
 import { onMounted, ref, watch } from "vue";
 import * as d3 from "d3";
-import { createHistogram, createNeedles, updateRMSPath, updateNeedle } from "./d3Elements"; 
+import { createHistogram, createNeedles, createLine, updateLine, updateNeedle, resetLines } from "./d3Elements"; 
 
 const histogram = ref<SVGSVGElement | null>(null);
-const data = ref<{ time: number | null, level: number | null }[]>([]);
+const data = ref<{ time: number, RMS: number, LUFS: number }[]>([]);
 const duration = 60;
 
 const width = 368;
@@ -17,17 +17,39 @@ onMounted(() => {
     const x = d3.scaleLinear().domain([0, duration]).range([0, 2 * Math.PI]);
     const y = d3.scaleLinear().domain([0, 50]).range([innerRadius, outerRadius]);
 
-    const { svg, RMSpath, line } = createHistogram(histogram.value!, data.value, width, height, innerRadius, outerRadius, x, y);
-    const { needle, firstNeedle } = createNeedles(svg, outerRadius);
-
+    const { svg } = createHistogram(histogram.value!, data.value, width, height, innerRadius, outerRadius, x, y);
+    
+    const RMSYOffset = 80;
+    const LUFSYOffset = 130;
+    
+    const RMSLine = createLine("RMS", histogram.value, data.value, x);
+    const LUFSLine = createLine("LUFS", histogram.value, data.value, x);
+    
+    const { needle } = createNeedles(svg, outerRadius);
+    
     let t: d3.Timer;
-    let rmsValues = [];
-    const windowSize = 10;
     let lastElapsed = 0;
+
+    const smoothCurve = (value: number) => {
+        let values = [];
+        const windowSize = 10;
+        
+        let newValue = Math.round(value);
+        values.push(newValue);
+
+        if (values.length > windowSize) {
+            values.shift();
+        }
+
+        let avgValue = values.reduce((sum, val) => sum + val, 0) / values.length;
+
+        return avgValue;
+    }
 
     const updateTimer = (elapsed: number) => {
         store.elapsedTime = lastElapsed + elapsed;
         let parsedElapsed = Math.floor(store.elapsedTime) / 1000;
+        const angle = x(parsedElapsed % duration);
 
         if (store.elapsedTime / 1000 >= duration && store.playing) {
             data.value = [];
@@ -35,25 +57,17 @@ onMounted(() => {
             t.restart(updateTimer);
         }
 
-        if (store.instantRMS) {
-            let newValue = Math.round(store.instantRMS) + 80;
-            rmsValues.push(newValue);
+        if (store.instantValues) {
+            data.value.push({
+                time: parsedElapsed,
+                RMS: store.isMuted ? 0 : smoothCurve(store.instantValues.RMS ?? 0),
+                LUFS: store.isMuted ? 0 : smoothCurve(store.instantValues.LUFS ?? 0)
+            })
         }
-
-        if (rmsValues.length > windowSize) {
-            rmsValues.shift();
-        }
-
-        let avgRMS = rmsValues.reduce((sum, val) => sum + val, 0) / rmsValues.length;
-        const angle = x(parsedElapsed % duration);
-
-        data.value.push({
-            time: parsedElapsed,
-            level: store.isMuted ? 80 : avgRMS
-        });
-
+        
         updateNeedle(needle, angle);
-        updateRMSPath(RMSpath, data.value, line);
+        updateLine("RMS", RMSLine, data.value, RMSYOffset);
+        updateLine("LUFS", LUFSLine, data.value, LUFSYOffset);
 
         if (!store.playing) {
             lastElapsed = store.elapsedTime;
@@ -79,7 +93,7 @@ onMounted(() => {
                 t.restart(updateTimer);
             } else {
                 t.stop();
-                RMSpath.attr("d", "");
+                resetLines(histogram.value!) 
                 needle.attr("transform", "rotate(0)");
             }
         }

@@ -18,15 +18,11 @@ const audioFiles = [
 	},
 ];
 
-const startAudioContext = () => {
-	store.audioContext = new AudioContext();
-};
-
 const onVolumeChange = (
 	e: CustomEvent<{ rms: number | null; lufs: number | null }>,
 ) => {
-	store.instantRMS = e.detail.rms;
-	store.instantLUFS = e.detail.lufs;
+	store.instantValues.RMS = e.detail.rms;
+	store.instantValues.LUFS = e.detail.lufs;
 };
 
 const onPlay = () => {
@@ -68,8 +64,8 @@ onMounted(() => {
 		  ></oh-audio-player>
 	
 		  <div>
-			<div>RMS: {{ store.instantRMS }}</div>
-			<div>LUFS: {{ store.instantLUFS }}</div>
+			<div>RMS: {{ store.instantValues.RMS }}</div>
+			<div>LUFS: {{ store.instantValues.LUFS }}</div>
 		  </div>
 		</template>
 	</div>
