@@ -1,23 +1,31 @@
 import { reactive } from "vue";
 
+interface Duration {
+    time: number;
+    unit: string;
+    scaleFactor: number;
+}
+
 interface InstantValues {
     RMS: number | null;
     LUFS: number | null;
 }
 
 export const store = reactive({
-    instantRMS: <number | null>(null),
-    instantLUFS: <number | null>(null),
     instantValues: {
-        RMS: <number | null>(null),
-        LUFS: <number | null>(null),
+        RMS: null,
+        LUFS: null,
     } as InstantValues,
 
-    audioContext: <AudioContext | null>(null),
-    isMuted: <boolean>(false),
+    audioContext: null as AudioContext | null,
+    isMuted: false,
+    restart: false,
+    playing: false,
+    elapsedTime: 60,
 
-    restart: <boolean>(false),
-    playing: <boolean>(false),
-    elapsedTime: <number>(0),
-
-})
+    duration: reactive<Duration>({
+        time: 1,
+        unit: "m",
+        scaleFactor: 1
+    })
+});

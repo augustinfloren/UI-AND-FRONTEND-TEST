@@ -6,24 +6,37 @@ import { createHistogram, createNeedles, createLine, updateLine, updateNeedle, r
 
 const histogram = ref<SVGSVGElement | null>(null);
 const data = ref<{ time: number, RMS: number, LUFS: number }[]>([]);
-const duration = 60;
+const duration = ref<number>(60);
+
+const x = ref(d3.scaleLinear().domain([0, duration.value]).range([0, 2 * Math.PI]));
 
 const width = 368;
 const height = width;
 const innerRadius = 50;
 const outerRadius = 180;
 
+watch(() => store.duration, (newDuration) => {
+    const timeConversion: Record<string, number> = { m: 60, h: 3600 };
+    duration.value = newDuration.time * (timeConversion[newDuration.unit] || 1);
+}, { deep: true });
+
+watch(duration, (newDuration, oldDuration) => {
+    if (newDuration !== oldDuration) {
+        x.value = d3.scaleLinear().domain([0, newDuration]).range([0, 2 * Math.PI]);
+        data.value.shift();
+    }
+});
+
 onMounted(() => {
-    const x = d3.scaleLinear().domain([0, duration]).range([0, 2 * Math.PI]);
     const y = d3.scaleLinear().domain([0, 50]).range([innerRadius, outerRadius]);
 
-    const { svg } = createHistogram(histogram.value!, data.value, width, height, innerRadius, outerRadius, x, y);
+    const { svg } = createHistogram(histogram.value!, data.value, width, height, innerRadius, outerRadius, x.value, y);
     
     const RMSYOffset = 80;
     const LUFSYOffset = 130;
     
-    const RMSLine = createLine("RMS", histogram.value, data.value, x);
-    const LUFSLine = createLine("LUFS", histogram.value, data.value, x);
+    const RMSLine = createLine("RMS", histogram.value, data.value, x.value, "#802380");
+    const LUFSLine = createLine("LUFS", histogram.value, data.value, x.value, "#c837c8");
     
     const { needle } = createNeedles(svg, outerRadius);
     
@@ -44,14 +57,14 @@ onMounted(() => {
         let avgValue = values.reduce((sum, val) => sum + val, 0) / values.length;
 
         return avgValue;
-    }
+    };
 
     const updateTimer = (elapsed: number) => {
         store.elapsedTime = lastElapsed + elapsed;
-        let parsedElapsed = Math.floor(store.elapsedTime) / 1000;
-        const angle = x(parsedElapsed % duration);
+        let parsedElapsed = (Math.floor(store.elapsedTime) / 1000);
+        const angle = x.value(parsedElapsed % duration.value); 
 
-        if (store.elapsedTime / 1000 >= duration && store.playing) {
+        if (store.elapsedTime / 1000 >= duration.value && store.playing) {
             data.value = [];
             lastElapsed = 0;
             t.restart(updateTimer);
@@ -62,12 +75,12 @@ onMounted(() => {
                 time: parsedElapsed,
                 RMS: store.isMuted ? 0 : smoothCurve(store.instantValues.RMS ?? 0),
                 LUFS: store.isMuted ? 0 : smoothCurve(store.instantValues.LUFS ?? 0)
-            })
+            });
         }
         
-        updateNeedle(needle, angle);
-        updateLine("RMS", RMSLine, data.value, RMSYOffset);
-        updateLine("LUFS", LUFSLine, data.value, LUFSYOffset);
+        updateNeedle(needle, angle); 
+        updateLine("RMS", RMSLine, data.value, RMSYOffset, store.duration.scaleFactor);
+        updateLine("LUFS", LUFSLine, data.value, LUFSYOffset, store.duration.scaleFactor);
 
         if (!store.playing) {
             lastElapsed = store.elapsedTime;
@@ -75,16 +88,16 @@ onMounted(() => {
         }
     };
 
-    watch(() => store.playing, () => {
-        if (store.playing) {
+    watch(() => store.playing, (newPlaying) => {
+        if (newPlaying) {
             setTimeout(() => {
                 t = d3.timer(updateTimer);
             }, 150);
         }
     });
 
-    watch(() => store.restart, () => {
-        if (store.restart) {
+    watch(() => store.restart, (newRestart) => {
+        if (newRestart) {
             store.restart = false;
             data.value = [];
             lastElapsed = 0;
@@ -93,7 +106,7 @@ onMounted(() => {
                 t.restart(updateTimer);
             } else {
                 t.stop();
-                resetLines(histogram.value!) 
+                resetLines(histogram.value!);
                 needle.attr("transform", "rotate(0)");
             }
         }

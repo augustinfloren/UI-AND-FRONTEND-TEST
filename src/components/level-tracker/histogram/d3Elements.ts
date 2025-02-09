@@ -38,10 +38,17 @@ export function createHistogram(svgElement: SVGSVGElement, data: any[], width: n
         .attr("stroke-width", 1.5)
         .attr("stroke-opacity", 1)
 
+    const defs = svg.append("defs");
+
+    const filter = defs.append("filter")
+        .attr("id", "blur")
+        .append("feGaussianBlur")
+        .attr("stdDeviation", 2); 
+
     return { svg };
 }
 
-export function createLine(type:string, svg: SVGSVGElement | null, data: any[], x: any): LineObject {
+export function createLine(type:string, svg: SVGSVGElement | null, data: any[], x: any, color: string): LineObject {
     const line = d3.lineRadial<[number, number]>()
         .curve(d3.curveCatmullRom)
         .angle(d => x(d[0]));
@@ -49,11 +56,12 @@ export function createLine(type:string, svg: SVGSVGElement | null, data: any[], 
     const path = d3.select(svg)
         .append("path")
         .attr("fill", "none")
-        .attr("stroke", `${(type === "RMS" ? "purple" : "blue")}`)
-        .attr("stroke-width", 2.5)
+        .attr("stroke", color)
+        .attr("stroke-width", 1.5)
         .attr("d", line(
             data.map(d => [d.time, type === "RMS" ? d.RMS : d.LUFS])
-        ));
+        ))
+        .attr("filter", "url(#blur)");
 
     return { line, path };
 }
@@ -78,10 +86,10 @@ export function createNeedles(svg: any, outerRadius: number) {
     return { needle, firstNeedle };
 }
 
-export function updateLine(type: "RMS" | "LUFS", object: LineObject, data: any[], yOffset: number) {
+export function updateLine(type: "RMS" | "LUFS", object: LineObject, data: any[], yOffset: number, scaleFactor: number) {
     object.path.attr("d", object.line(
         data.filter(d => d.LUFS >= -100)
-            .map(d => [d.time, (type === "RMS" ? d.RMS : d.LUFS) + yOffset])
+            .map(d => [d.time / scaleFactor, (type === "RMS" ? d.RMS : d.LUFS) + yOffset])
     ));
 }
 
