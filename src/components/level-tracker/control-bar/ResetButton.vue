@@ -18,8 +18,16 @@ const restart = () => {
     width: 15%;
     display: flex;
     justify-content: center;
+    transition: all 0.1s ease;
+    
     img {
         width: 1.7rem;
+    }
+    
+    &:hover {
+        cursor: pointer;
+        transform: rotate(15deg);
+        opacity: 0.8;
     }
 }
 </style>
