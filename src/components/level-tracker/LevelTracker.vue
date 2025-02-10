@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { store } from "@/store/levelTrackerStore";
 import InstantLevel from "./instant-level/InstantLevel.vue";
 import ControlBar from "./control-bar/Control-bar.vue";
 import Histogram from "./histogram/Histogram.vue";

@@ -32,12 +32,40 @@ watch(scale, (newScale) => {
 </template>
 
 <style scoped lang="scss">
+@use "@/styles/base/colors-semantic";
+@use "@/styles/base/typography";
+@use "@/styles/base/space";
+@use "@/styles/base/decoration";
+
 .scale-selector{
     display: flex;
     justify-content: center;
     select {
-        margin-right: 3rem;
+        margin-left: -5rem;
         text-align: center;
+
+        /* Reset */
+        appearance: none;
+        border: 0;
+        outline: 0;
+        font: inherit;
+
+        width: 5rem;
+        padding: 0.5rem 0.5rem;
+        background-color: colors-semantic.$color-background-layer-3;
+        color: white;
+        border-radius: 0.25em;
+        box-shadow: 0 0 1em 0 rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+
+        &:focus {
+            outline: none;
+        }
+        
+        option {
+            color: inherit;
+            background-color: var(--option-bg);
+        }
     }
 }
 </style>

@@ -148,6 +148,4 @@ export function resetLines(histogram: SVGSVGElement) {
     d3.select(histogram)  
         .selectAll("path")  
         .attr("d", "path-point");
-    
-    d3.select("circle").remove();
 }
