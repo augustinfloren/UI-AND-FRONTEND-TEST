@@ -79,8 +79,8 @@ onMounted(() => {
         }
         
         updateNeedle(needle, angle); 
-        updateLine("RMS", RMSLine, data.value, RMSYOffset, store.duration.scaleFactor);
-        updateLine("LUFS", LUFSLine, data.value, LUFSYOffset, store.duration.scaleFactor);
+        updateLine(svg, "LUFS", LUFSLine, data.value, LUFSYOffset, store.duration.scaleFactor, store.instantValues.LUFS);
+        updateLine(svg, "RMS", RMSLine, data.value, RMSYOffset, store.duration.scaleFactor, store.instantValues.RMS);
 
         if (!store.playing) {
             lastElapsed = store.elapsedTime;

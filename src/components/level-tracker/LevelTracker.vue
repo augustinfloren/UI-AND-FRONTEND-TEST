@@ -17,7 +17,8 @@ import Histogram from "./histogram/Histogram.vue";
         <div class="level-tracker__main">
             <Histogram />
             <div class="instant-level-container">
-                <InstantLevel type="LUFS" :value="store.instantLUFS"/>              
+                <InstantLevel type="LUFS"/>     
+                <InstantLevel type="RMS"/>         
             </div>
         </div>
     </div>

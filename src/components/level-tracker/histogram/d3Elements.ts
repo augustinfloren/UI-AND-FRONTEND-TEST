@@ -40,7 +40,7 @@ export function createHistogram(svgElement: SVGSVGElement, data: any[], width: n
 
     const defs = svg.append("defs");
 
-    const filter = defs.append("filter")
+    defs.append("filter")
         .attr("id", "blur")
         .append("feGaussianBlur")
         .attr("stdDeviation", 2); 
@@ -55,13 +55,17 @@ export function createLine(type:string, svg: SVGSVGElement | null, data: any[], 
 
     const path = d3.select(svg)
         .append("path")
+        .attr("id", `${type}-path`)
         .attr("fill", "none")
         .attr("stroke", color)
         .attr("stroke-width", 1.5)
+        .attr('marker-start', 'url(#dot)')
+        .attr('marker-mid', 'url(#dot)')
+        .attr('marker-end', 'url(#dot)')
         .attr("d", line(
             data.map(d => [d.time, type === "RMS" ? d.RMS : d.LUFS])
         ))
-        .attr("filter", "url(#blur)");
+        .attr("filter", "url(#blur)")
 
     return { line, path };
 }
@@ -86,19 +90,64 @@ export function createNeedles(svg: any, outerRadius: number) {
     return { needle, firstNeedle };
 }
 
-export function updateLine(type: "RMS" | "LUFS", object: LineObject, data: any[], yOffset: number, scaleFactor: number) {
-    object.path.attr("d", object.line(
-        data.filter(d => d.LUFS >= -100)
-            .map(d => [d.time / scaleFactor, (type === "RMS" ? d.RMS : d.LUFS) + yOffset])
-    ));
+export function updateLine(
+    svg: any,
+    type: "RMS" | "LUFS",
+    object: LineObject,
+    data: any[],
+    yOffset: number,
+    scaleFactor: number,
+    level: number | null,
+) {
+    if (!svg) return;
+    
+    const lineData: [number, number][] = data
+        .filter(d => d.LUFS >= -100)
+        .map(d => {
+            const xCoord = d.time / scaleFactor;
+            const yCoord = (type === "RMS" ? d.RMS : d.LUFS) + yOffset;
+            return [xCoord, yCoord];
+        });
+
+    object.path.attr("d", object.line(lineData));
+
+    const pathNode = object.path.node();
+    const pathLength = pathNode.getTotalLength();
+    const lastPoint = pathNode.getPointAtLength(pathLength);
+
+    svg.append("circle")
+        .attr("class", "path-point")
+        .attr("cx", lastPoint.x)
+        .attr("cy", lastPoint.y)
+        .attr("r", 4)
+        .attr("opacity", 0)
+        .style("cursor", "pointer")
+        .on("mouseover", function () {
+            d3.select(`#${type}-path`)
+                .attr("stroke", "orange")  
+                .attr("stroke-width", 3);  
+
+            d3.select(`.instant-level__${type}-value`)
+                .text(`${Math.floor(level)}`);
+        })
+        .on("mouseout", function () {
+            d3.select(`#${type}-path`)
+                .attr("stroke", "#c837c8")  
+                .attr("stroke-width", 2);  
+
+            d3.select(`.instant-level__${type}-value`)
+                .text("0");
+        });   
 }
 
-export function updateNeedle(needle: any, angle: number) {
+export function updateNeedle(needle: any,angle: number) {
     needle.attr("transform", `rotate(${angle * (180 / Math.PI)})`);
 }
 
 export function resetLines(histogram: SVGSVGElement) {
     d3.select(histogram)  
         .selectAll("path")  
-        .attr("d", "");
+        .attr("d", "path-point");
+    
+    d3.select("circle").remove();
 }
